@@ -15,9 +15,14 @@ classdef ROSBridge
             %   Imports URI class and ROSBridgeClient class
             %   Creates and opens websocket
             
-            javaaddpath('/home/bandrade/matlab-websocket/Java-WebSocket/dist/java_websocket.jar');
+            % javaaddpath('/home/bandrade/matlab-websocket/Java-WebSocket/dist/java_websocket.jar');
+            
+            % For callbacks to work, must use static classpath by editing
+            % classpath.txt
+            % Try using matlab handle callback on message property instead
+            % of java callback...
             import java.net.URI
-            import ROSBridgeClient.*
+            import org.java_websocket.bridge.*
             
             % Create java.net.URI object for ROS_MASTER_URI
             obj.MASTER_URI = URI(master_uri);
