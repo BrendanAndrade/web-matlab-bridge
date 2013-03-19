@@ -54,13 +54,19 @@ classdef ROSBridge
         function close(obj)
             obj.client.close()
         end
-            
+           
+        % Possibly delete 
         function message_struct = json_to_struct(message)
             message_struct = loadjson(char(message));
         end
-         h, e
+        
         function subscribe(obj, name, type, callback)
             message = strcat('{"op": "subscribe", "topic": "', name, '", "type": "', type, '"}');
+            obj.send(message);
+        end
+        
+        function unsubscribe(obj, name)
+            message = strcat('{"op": "unsubscribe", "topic": "', name, '"}');
             obj.send(message);
         end
         
@@ -75,9 +81,15 @@ classdef ROSBridge
         end
         
         function message_callback(obj)
-            disp(obj.client.message);
-            % message_struct = obj.loadjson(obj.client.message);
-            
+            message_struct = loadjson(char(obj.client.message));
+            switch message_struct.op
+                case 'publish'
+                    disp(message_struct.msg)
+                case 'service_response'
+                    disp(message_struct.values)
+                case 'status'
+                    disp(message_struct.msg)
+            end
         end
             
         
