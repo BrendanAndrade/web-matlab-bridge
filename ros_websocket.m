@@ -4,6 +4,7 @@ classdef ros_websocket < handle
     
     events
         MessageReceived
+        ServiceResponse
     end
     
     properties
@@ -70,17 +71,14 @@ classdef ros_websocket < handle
         function message_callback(obj)
             message_struct = loadjson(char(obj.client.message));
             obj.message = message_struct;
-            notify(obj, 'MessageReceived');
-            %{
             switch message_struct.op
                 case 'publish'
-                    disp(message_struct.msg)
+                    notify(obj, 'MessageReceived');
                 case 'service_response'
-                    disp(message_struct.values)
+                    notify(obj, 'ServiceResponse');
                 case 'status'
                     disp(message_struct.msg)
             end % switch
-            %}
         end % message_callback
             
     end % methods
