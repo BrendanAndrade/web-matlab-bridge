@@ -5,6 +5,7 @@ classdef ROSBridge
     properties
         MASTER_URI
         client
+        subscriptions = struct('names', cell(1), 'callbacks', cell(1));
     end
     
     methods
@@ -35,7 +36,7 @@ classdef ROSBridge
                 pause(0.10)
                 retry = retry + 1;
             end
-            
+            matlab 
             % Set callback for incoming message
             set(obj.client, 'MessageReceivedCallback', @(h,e) obj.message_callback() )
             
@@ -60,14 +61,27 @@ classdef ROSBridge
             message_struct = loadjson(char(message));
         end
         
-        function subscribe(obj, name, type, callback)
+        function obj = subscribe(obj, name, type, callback)
             message = strcat('{"op": "subscribe", "topic": "', name, '", "type": "', type, '"}');
-            obj.send(message);
+            if find(strcmp(obj.subscriptions.names, name))
+                disp(strcat('Warning: Already subscribed to ', name,'. Callback not changing.'));
+            else
+                obj.send(message);
+                obj.subscriptions.names{end+1} = name;
+                obj.subscriptions.callbacks{end+1} = callback;
+            end            
         end
         
-        function unsubscribe(obj, name)
+        function obj = unsubscribe(obj, name)
             message = strcat('{"op": "unsubscribe", "topic": "', name, '"}');
-            obj.send(message);
+            sub_index = find(strcmp(obj.subscriptions.names, name));
+            if sub_index > 0
+                obj.subscriptions.names(sub_index) = [];
+                obj.subscriptions.callbacks(sub_index) = [];
+                obj.send(message);
+            else
+                disp(strcat('Error: Cannot unsubscribe to ', name, '. Not subscribed to topic.'));
+            end
         end
         
         function advertise(obj, name, type)
