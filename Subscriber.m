@@ -3,21 +3,34 @@ classdef Subscriber
     %   Detailed explanation goes here
     
     properties
-        name
+        ws
+        topic
         type
         data
-    end
+        callback
+    end % properties
     
     methods
-        function obj = Subscriber(name, type, callback)
-            obj.name = name;
-            obj.type = type;
-        end
         
-        function set_data(obj, data)
-            obj.data = data;
-        end
-    end
+        function obj = Subscriber(ros_websocket, topic, type, callback)
+            obj.ws = ros_websocket;
+            obj.topic = topic;
+            obj.type = type;
+            obj.callback = callback;
+            obj.subscribe();
+        end % Subscriber
+        
+        function obj = subscribe(obj)
+            message = strcat('{"op": "subscribe", "topic": "', obj.topic, '", "type": "', obj.type, '"}');
+            obj.ws.send(message);
+        end % subscribe
+        
+        function unsubscribe(obj)
+            message = strcat('{"op": "unsubscribe", "topic": "', obj.topic, '"}');
+            obj.ws.send(message);
+        end % unsubscribe
+            
+    end % methods
     
-end
+end % classdef
 
