@@ -24,6 +24,7 @@ end
 
 %{
 
-rostopic pub --once /test_topic geometry_msgs/PoseArray '{poses: [position: {x: 0.1, y: 0.1, z: 0.0}]}'
+rostopic pub --once /test_topic geometry_msgs/PoseArray '{poses: [position:
+{x: 0.1, y: 0.1, z: 0.0}]}'git 
 
 %}
