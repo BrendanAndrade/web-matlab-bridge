@@ -1,12 +1,11 @@
 classdef Subscriber
     %UNTITLED2 Summary of this class goes here
     %   Detailed explanation goes here
-    
+       
     properties
         ws
         topic
         type
-        data
         callback
     end % properties
     
@@ -33,8 +32,7 @@ classdef Subscriber
         
         function obj = OnMessageReceived(obj)
             if strcmp(obj.ws.message.topic, obj.topic)
-                obj.data = obj.ws.message.msg;
-                obj.callback(data);
+                obj.callback(obj.ws.message.msg);
             end
         end
             
