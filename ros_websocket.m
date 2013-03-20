@@ -1,10 +1,15 @@
-classdef ros_websocket
+classdef ros_websocket < handle
     %UNTITLED2 Summary of this class goes here
     %   Detailed explanation goes here
+    
+    events
+        MessageReceived
+    end
     
     properties
         MASTER_URI
         client
+        message
     end % properties
     
     methods
@@ -64,6 +69,9 @@ classdef ros_websocket
         
         function message_callback(obj)
             message_struct = loadjson(char(obj.client.message));
+            obj.message = message_struct;
+            notify(obj, 'MessageReceived');
+            %{
             switch message_struct.op
                 case 'publish'
                     disp(message_struct.msg)
@@ -72,6 +80,7 @@ classdef ros_websocket
                 case 'status'
                     disp(message_struct.msg)
             end % switch
+            %}
         end % message_callback
             
     end % methods

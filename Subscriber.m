@@ -18,6 +18,7 @@ classdef Subscriber
             obj.type = type;
             obj.callback = callback;
             obj.subscribe();
+            addlistener(obj.ws, 'MessageReceived', @(h,e) obj.OnMessageReceived);
         end % Subscriber
         
         function obj = subscribe(obj)
@@ -29,6 +30,13 @@ classdef Subscriber
             message = strcat('{"op": "unsubscribe", "topic": "', obj.topic, '"}');
             obj.ws.send(message);
         end % unsubscribe
+        
+        function obj = OnMessageReceived(obj)
+            if strcmp(obj.ws.message.topic, obj.topic)
+                obj.data = obj.ws.message.msg;
+                obj.callback(data);
+            end
+        end
             
     end % methods
     
