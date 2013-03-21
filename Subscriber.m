@@ -1,23 +1,26 @@
-classdef Subscriber
+classdef Subscriber < handle
     %UNTITLED2 Summary of this class goes here
     %   Detailed explanation goes here
        
+    events
+        OnMessageReceived
+    end
+    
     properties
         ws
         topic
         type
-        callback
+        data
     end % properties
     
     methods
         
-        function obj = Subscriber(ros_websocket, topic, type, callback)
+        function obj = Subscriber(ros_websocket, topic, type)
             obj.ws = ros_websocket;
             obj.topic = topic;
             obj.type = type;
-            obj.callback = callback;
             obj.subscribe();
-            addlistener(obj.ws, 'MessageReceived', @(h,e) obj.OnMessageReceived);
+            addlistener(obj.ws, 'MessageReceived', @(h,e) obj.OnWSMessageReceived);
         end % Subscriber
         
         function obj = subscribe(obj)
@@ -30,9 +33,10 @@ classdef Subscriber
             obj.ws.send(message);
         end % unsubscribe
         
-        function obj = OnMessageReceived(obj)
+        function obj = OnWSMessageReceived(obj)
             if strcmp(obj.ws.message.topic, obj.topic)
-                obj.callback(obj.ws.message.msg);
+                obj.data = obj.ws.message.msg;
+                notify(obj, 'OnMessageReceived');
             end
         end
             
