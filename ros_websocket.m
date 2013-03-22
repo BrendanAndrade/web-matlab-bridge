@@ -1,6 +1,7 @@
 classdef ros_websocket < handle
     %ros_websocket websocket object used to connect to ROS using rosbridge
-    %   Detailed explanation goes here
+    %   Allows communication with ROS through rosbridge server v2.0.
+    %   
     
     events
         MessageReceived     % Notified when message received on a subscribed topic
