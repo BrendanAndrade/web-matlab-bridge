@@ -22,6 +22,7 @@ classdef ros_websocket < handle
         
         MASTER_URI % Java URI object of the websocket
         message % Latest message received from websocket
+        status_level % The current level of ROS statuses being sent by rosbridge
         
     end % private set properties 
     
@@ -50,6 +51,7 @@ classdef ros_websocket < handle
             obj.MASTER_URI = URI(master_uri);
             % Create ROSBridgeClient object
             obj.client = ROSBridgeClient(obj.MASTER_URI);
+            
             % Connect to websocket
             retry = 0;
             while (not(strcmp(obj.client.getReadyState(),'OPEN')) && retry <= 3)
@@ -57,9 +59,9 @@ classdef ros_websocket < handle
                 pause(0.10)
                 retry = retry + 1;
             end
-             
+            
             % Set callback for incoming message
-            set(obj.client, 'MessageReceivedCallback', @(h,e) obj.message_callback() )
+            set(obj.client, 'MessageReceivedCallback', @(h,e) obj.message_callback(h,e));
             
         end % ros_websocket
         
@@ -79,7 +81,8 @@ classdef ros_websocket < handle
             % Send a message (string) through the websocket to the rosbridge
             %   See rosbridge documentation for message formatting
             
-            obj.client.send(message)
+            javaMethodMT('send', obj.client, message);
+            % pause(0.03); % Pause for java function call to complete
         end % send
         
         function close(obj)
@@ -87,15 +90,16 @@ classdef ros_websocket < handle
             obj.client.close()
         end % close
         
-    end %public methods
+        
+    end %public methodsration: set_level.  Allowed operations: ['call_service', 'publish', 'subscribe', 'unsubscribe', 'unadvertise', 'advertise'
     
     
     methods (Access = private)
         
-        function message_callback(obj)
-            message_struct = loadjson(char(obj.client.message)); %convert json string to struct
+        function message_callback(obj, ~, e)
+            message_struct = loadjson(char(e.getNewMessage)); %convert json string to struct
+            disp('received')
             obj.message = message_struct;
-            
             % Trigger event type based on what type of message is received
             switch message_struct.op
                 case 'publish'

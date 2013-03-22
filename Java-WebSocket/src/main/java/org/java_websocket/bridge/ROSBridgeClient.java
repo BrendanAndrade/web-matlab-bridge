@@ -39,7 +39,7 @@ public class ROSBridgeClient extends WebSocketClient {
 	System.out.println( "received: " + message );
 	// send( "you said: " + message );
 	this.message = message;
-	_fireMessageEvent();
+	_fireMessageEvent( message );
     }
 
     @Override
@@ -71,8 +71,8 @@ public class ROSBridgeClient extends WebSocketClient {
 	_listeners.remove( l );
     }
 
-    private synchronized void _fireMessageEvent() {
-	MessageEvent message = new MessageEvent( this, _message);
+    private synchronized void _fireMessageEvent(String mess) {
+	MessageEvent message = new MessageEvent( this, mess);
 	Iterator listeners = _listeners.iterator();
 	while (listeners.hasNext() ) {
 	    ( (MessageListener) listeners.next() ).messageReceived( message );
@@ -80,11 +80,11 @@ public class ROSBridgeClient extends WebSocketClient {
     }
 
     public class MessageEvent extends EventObject {
-	private String _message;
- 
+	private String mess;
+	public String getNewMessage() { return mess; }
 	public MessageEvent( Object source, String message) {
 	    super( source );
-	    _message = message;
+	    this.mess = message;
 	}
 
 	public String message() {
