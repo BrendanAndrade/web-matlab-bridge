@@ -1,28 +1,43 @@
 classdef ros_websocket < handle
-    %UNTITLED2 Summary of this class goes here
+    %ros_websocket websocket object used to connect to ROS using rosbridge
     %   Detailed explanation goes here
     
     events
-        MessageReceived
-        ServiceResponse
+        MessageReceived     % Notified when message received on a subscribed topic
+        
+        % Notified when a response to service call is received
+        ServiceResponse    
+        
     end
     
-    properties
-        MASTER_URI
-        client
-        message
-    end % properties
+    properties (Access = public)
+        
+        client  % Java websocket client object
+        
+    end % public properties
+    
+    
+    properties (SetAccess = private)
+        
+        MASTER_URI % Java URI object of the websocket
+        message % Latest message received from websocket
+        
+    end % private set properties 
+    
     
     methods
         
         function obj = ros_websocket(master_uri)
-            %Constructor for ROSBridge object
-            %   Adds java_websocket.jar to dynamic java path
+            % Constructor for ROSBridge object
+            %   object = ros_websocket(master_uri)
+            %   master_uri is a string for the ROS master URI
+            %   Example: 'ws://localhost:9090'
+            %
+            %   Function:
             %   Imports URI class and ROSBridgeClient class
             %   Creates and opens websocket
             
-            % javaaddpath('/home/bandrade/matlab-websocket/Java-WebSocket/dist/java_websocket.jar');
-            
+                      
             % For callbacks to work, must use static classpath by editing
             % classpath.txt
             % Try using matlab handle callback on message property instead
@@ -47,30 +62,40 @@ classdef ros_websocket < handle
             
         end % ros_websocket
         
+        
         function delete(obj)
-            %Destructor for ROSBridge object
+            % Destructor
             %   Closes the websocket if it's open.
+            
             if strcmp(obj.client.getReadyState(),'OPEN')
                 obj.close();
             end
+            
         end % delete
         
+        
         function send(obj, message)
+            % Send a message (string) through the websocket to the rosbridge
+            %   See rosbridge documentation for message formatting
+            
             obj.client.send(message)
         end % send
         
         function close(obj)
+            % Close the websocket connection
             obj.client.close()
         end % close
-           
-        % Possibly delete 
-        function message_struct = json_to_struct(message)
-            message_struct = loadjson(char(message));
-        end
+        
+    end %public methods
+    
+    
+    methods (Access = private)
         
         function message_callback(obj)
-            message_struct = loadjson(char(obj.client.message));
+            message_struct = loadjson(char(obj.client.message)); %convert json string to struct
             obj.message = message_struct;
+            
+            % Trigger event type based on what type of message is received
             switch message_struct.op
                 case 'publish'
                     notify(obj, 'MessageReceived');
@@ -82,6 +107,7 @@ classdef ros_websocket < handle
         end % message_callback
             
     end % methods
+    
     
 end % classdef
 
