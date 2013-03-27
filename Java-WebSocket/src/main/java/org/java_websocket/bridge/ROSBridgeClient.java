@@ -9,10 +9,19 @@ import java.util.List;
 import java.util.EventObject;
 import java.util.EventListener;
 
+import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
+import javax.swing.JFrame;
+import javax.swing.JButton;
+import javax.swing.JPanel;
+import javax.swing.SwingUtilities;
+
+
 import org.java_websocket.client.WebSocketClient;
 import org.java_websocket.drafts.Draft;
 import org.java_websocket.drafts.Draft_10;
 import org.java_websocket.handshake.ServerHandshake;
+
 
 public class ROSBridgeClient extends WebSocketClient {
 
@@ -20,14 +29,47 @@ public class ROSBridgeClient extends WebSocketClient {
 
     private List _listeners = new ArrayList();
     private String _message;
+    private ShutdownButton button = new ShutdownButton();
 
     public ROSBridgeClient( URI serverUri, Draft draft ) {
 	super( serverUri, draft );
+	this.button.setVisible(true);
     }
 
     public ROSBridgeClient( URI serverURI ) {
 	super( serverURI );
+	this.button.setVisible(true);
     }
+
+    private class ShutdownButton extends JFrame {
+	public ShutdownButton() {
+	    int x = 300;
+	    int y = 100;
+	    JPanel panel = new JPanel();
+	    getContentPane().add(panel);
+	    
+	    panel.setLayout(null);
+	    
+	    JButton quitButton = new JButton("Manually Close Java Websocket");
+	    quitButton.setBounds(5,5,x-10,y-35);
+	    quitButton.addActionListener(new ActionListener() {
+		    public void actionPerformed(ActionEvent event) {
+			onPress();
+		    }
+		});
+	    panel.add(quitButton);
+	    setTitle("Java Websocket Open");
+	    setSize(x,y);
+	    setLocationRelativeTo(null);
+	    setDefaultCloseOperation(DO_NOTHING_ON_CLOSE);
+	}
+
+	private void onPress() {
+	    close();
+	    dispose();		
+	}
+    }
+	    
 
     @Override
     public void onOpen( ServerHandshake handshakedata ) {
@@ -46,12 +88,14 @@ public class ROSBridgeClient extends WebSocketClient {
     public void onClose( int code, String reason, boolean remote ) {
 	// The codecodes are documented in class org.java_websocket.framing.CloseFrame
 	System.out.println( "Connection closed by " + ( remote ? "remote peer" : "us" ) );
+	this.button.dispose();
     }
     
     @Override
     public void onError( Exception ex ) {
 	ex.printStackTrace();
 	// if the error is fatal then onClose will be called additionally
+	
     }
     
     public static void main( String[] args ) throws URISyntaxException {
