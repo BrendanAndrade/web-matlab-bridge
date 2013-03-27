@@ -83,7 +83,7 @@ classdef ros_websocket < handle
             %   See rosbridge documentation for message formatting
             
             javaMethodMT('send', obj.client, message);
-            pause(0.005); % Pause for java function call to complete
+            % pause(0.005); % Pause for java function call to complete
         end % send
         
         function close(obj)
