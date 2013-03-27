@@ -98,7 +98,7 @@ classdef ros_websocket < handle
     methods (Access = private)
         
         function message_callback(obj, ~, e)
-            message_struct = loadjson(char(e.getNewMessage)); %convert json string to struct
+            message_struct = loadjson(char(e.message)); %convert json string to struct
             obj.message = message_struct;
             % Trigger event type based on what type of message is received
             switch message_struct.op
