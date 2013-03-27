@@ -32,7 +32,7 @@ classdef Publisher
     %   ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE 
     %   POSSIBILITY OF SUCH DAMAGE.
     
-    properties
+    properties (SetAccess = private)
         topic
         type
         ws

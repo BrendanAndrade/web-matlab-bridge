@@ -36,7 +36,7 @@ classdef Subscriber < handle
         OnMessageReceived % Nofified when message is received by this subscriber
     end % events
     
-    properties
+    properties (SetAccess = private)
         ws  % 
         topic
         type
