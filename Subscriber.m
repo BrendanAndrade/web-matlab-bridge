@@ -20,7 +20,7 @@ classdef Subscriber < handle
             obj.topic = topic;
             obj.type = type;
             obj.subscribe();
-            addlistener(obj.ws, 'MessageReceived', @(h,e) obj.OnWSMessageReceived);
+            addlistener(obj.ws, 'MessageReceived', @(h,e) obj.OnWSMessageReceived(h,e));
         end % Subscriber
         
         function obj = subscribe(obj)
@@ -33,10 +33,11 @@ classdef Subscriber < handle
             obj.ws.send(message);
         end % unsubscribe
         
-        function obj = OnWSMessageReceived(obj)
-            if strcmp(obj.ws.message.topic, obj.topic)
-                obj.data = obj.ws.message.msg;
-                notify(obj, 'OnMessageReceived');
+        function obj = OnWSMessageReceived(obj,~,e)
+            message = e.data;
+            if strcmp(message.topic, obj.topic)
+                obj.data = message.msg;
+                notify(obj, 'OnMessageReceived',ROSCallbackData(message.msg));
             end
         end
             

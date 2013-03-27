@@ -103,7 +103,7 @@ classdef ros_websocket < handle
             % Trigger event type based on what type of message is received
             switch message_struct.op
                 case 'publish'
-                    notify(obj, 'MessageReceived');
+                    notify(obj, 'MessageReceived', ROSCallbackData(message_struct));
                 case 'service_response'
                     notify(obj, 'ServiceResponse');
                 case 'status'
