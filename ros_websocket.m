@@ -133,7 +133,7 @@ classdef ros_websocket < handle
                 case 'publish'
                     notify(obj, 'MessageReceived', ROSCallbackData(message_struct));
                 case 'service_response'
-                    notify(obj, 'ServiceResponse');
+                    notify(obj, 'ServiceResponse', ROSCallbackData(message_struct));
                 case 'status'
                     disp(message_struct.msg)
             end % switch

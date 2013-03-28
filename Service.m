@@ -32,11 +32,53 @@ classdef Service
     %   ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE 
     %   POSSIBILITY OF SUCH DAMAGE.
     
-    properties
-        
-    end % properties
     
-    methods
+    properties (Access = private)
+        ws % ros_websocket object over which to call the service
+        
+    end % private properties
+    
+    properties (SetAccess = private)
+        data
+        name % Name of the service to be called, string
+        data_name % 
+        isReceived
+        
+    end % private set properties
+    
+    methods 
+        
+        function obj = Service(ros_websocket, service)
+            obj.ws = ros_websocket;
+            obj.name = service;
+            obj.data_name = strcat(regexprep(service,'[^a-zA-Z]',''), '_data__');
+            addlistener(obj.ws, 'ServiceResponse', @(h,e) obj.callback(h,e));
+            assignin('base', obj.data_name, struct('status',false, 'data',[]));
+        end
+        
+        function out = call(obj, args)
+            
+            json_data = savejson('', args, 'ForceRootName', 0);
+            message = strcat('{"op": "call_service", "service": "', obj.name, '", "args": ', json_data, '}');
+            obj.ws.send(message);
+            % waitfor(obj, 'isReceived', true);
+            received_response = false;
+            while (received_response == false)
+                received_response = evalin('base', strcat(obj.data_name,'.status'));
+                pause(0.01);
+            end
+            out = evalin('base', strcat(obj.data_name,'.data'));
+            assignin('base', obj.data_name, struct('status', false, 'data', []));
+            % out = 'foo';
+        end
+        
+        function obj = callback(obj, ~, e)
+            message = e.data;
+            if strcmp(message.service, obj.name)
+                obj.data = message.values;
+                assignin('base',strcat(obj.data_name), struct('status', true,'data',message.values));
+            end
+        end
         
     end % methods
     
