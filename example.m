@@ -42,7 +42,8 @@ sub = Subscriber(ws, 'chatter', 'std_msgs/Int16');
 addlistener(sub,'OnMessageReceived',@(h,e) disp(strcat('Received: ', int2str(e.data.data))));
 
 for i=1:5
-   pub.publish(i); 
+   int16_message_struct = struct('data',i);
+   pub.publish(int16_message_struct); 
 end
 
 pub.unadvertise

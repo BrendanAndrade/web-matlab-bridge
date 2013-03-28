@@ -58,7 +58,7 @@ classdef Publisher
         end
         
         function publish(obj, data)
-            json_data = savejson('data', data);
+            json_data = savejson('', data, 'ForceRootName', false);
             message = strcat('{"op": "publish", "topic": "', obj.topic, '", "msg": ', json_data, '}');
             obj.ws.send(message);      
         end
