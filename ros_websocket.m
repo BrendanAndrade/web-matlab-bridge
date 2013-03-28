@@ -39,11 +39,11 @@ classdef ros_websocket < handle
         
     end
     
-    properties (Access = public)
+    properties (Access = private)
         
         client  % Java websocket client object
         
-    end % public properties
+    end % private properties
     
     
     properties (SetAccess = private)
