@@ -72,6 +72,10 @@ classdef Service
             % out = 'foo';
         end
         
+    end % methods
+    
+    methods (Access = private)
+        
         function obj = callback(obj, ~, e)
             message = e.data;
             if strcmp(message.service, obj.name)

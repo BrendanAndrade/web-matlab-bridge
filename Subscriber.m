@@ -63,6 +63,10 @@ classdef Subscriber < handle
             obj.ws.send(message);
         end % unsubscribe
         
+    end
+    
+    methods(Access = private)
+        
         function obj = OnWSMessageReceived(obj,~,e)
             message = e.data;
             if strcmp(message.topic, obj.topic)
@@ -70,8 +74,8 @@ classdef Subscriber < handle
                 notify(obj, 'OnMessageReceived',ROSCallbackData(message.msg));
             end
         end
-            
-    end % methods
+                
+    end % private methods
     
 end % classdef
 
