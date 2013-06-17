@@ -39,7 +39,7 @@ ws = ros_websocket(master_uri);
 pub = Publisher(ws,'chatter','std_msgs/Int16');
 sub = Subscriber(ws, 'chatter', 'std_msgs/Int16');
 
-addlistener(sub,'OnMessageReceived',@(h,e) disp(strcat('Received: ', int2str(e.data.data))));
+lh = event.listener(sub,'OnMessageReceived',@(h,e) disp(strcat('Received: ', int2str(e.data.data))));
 
 for i=1:5
    int16_message_struct = struct('data',i);
@@ -48,5 +48,6 @@ end
 
 pub.unadvertise
 sub.unsubscribe
+delete(lh)
 pause(0.1)
 ws.delete

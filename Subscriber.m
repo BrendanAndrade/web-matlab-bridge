@@ -41,6 +41,7 @@ classdef Subscriber < handle
         topic
         type
         data
+        lh
     end % properties
     
     methods
@@ -50,8 +51,12 @@ classdef Subscriber < handle
             obj.topic = topic;
             obj.type = type;
             obj.subscribe();
-            addlistener(obj.ws, 'MessageReceived', @(h,e) obj.OnWSMessageReceived(h,e));
+            obj.lh = event.listener(obj.ws, 'MessageReceived', @(h,e) obj.OnWSMessageReceived(h,e));
         end % Subscriber
+        
+        function delete(obj)
+            delete(obj.lh);
+        end
         
         function obj = subscribe(obj)
             message = strcat('{"op": "subscribe", "topic": "', obj.topic, '", "type": "', obj.type, '"}');
