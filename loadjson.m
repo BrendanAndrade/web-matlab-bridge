@@ -16,7 +16,7 @@ function data = loadjson(fname,varargin)
 %         http://www.mathworks.com/matlabcentral/fileexchange/20565
 %            date: 2008/07/03
 %
-% $Id: loadjson.m 371 2012-06-20 12:43:06Z fangq $
+% $Id: loadjson.m 394 2012-12-18 17:58:11Z fangq $
 %
 % input:
 %      fname: input file name, if fname contains "{}" or "[]", fname
@@ -30,7 +30,7 @@ function data = loadjson(fname,varargin)
 %           and [...] are converted to arrays
 %
 % license:
-%     BSD, see LICENSE_BSD.txt files for details
+%     BSD or GPL version 3, see LICENSE_{BSD,GPLv3}.txt files for details 
 %
 % -- this function is part of jsonlab toolbox (http://iso2mesh.sf.net/cgi-bin/index.cgi?jsonlab)
 %
@@ -133,13 +133,28 @@ if(~isempty(strmatch('x0x5F_ArrayType_',fn)) && ~isempty(strmatch('x0x5F_ArrayDa
     end
     if(~isempty(strmatch('x0x5F_ArrayIsSparse_',fn)))
         if(data(j).x0x5F_ArrayIsSparse_)
-            if(iscpx && size(ndata,2)==4)
-                ndata(:,3)=complex(ndata(:,3),ndata(:,4));
-            end
             if(~isempty(strmatch('x0x5F_ArraySize_',fn)))
                 dim=data(j).x0x5F_ArraySize_;
-                ndata=sparse(ndata(:,1),ndata(:,2),ndata(:,3),dim(1),prod(dim(2:end)));
+                if(iscpx && size(ndata,2)==4-any(dim==1))
+                    ndata(:,end-1)=complex(ndata(:,end-1),ndata(:,end));
+                end
+                if isempty(ndata)
+                    % All-zeros sparse
+                    ndata=sparse(dim(1),prod(dim(2:end)));
+                elseif dim(1)==1
+                    % Sparse row vector
+                    ndata=sparse(1,ndata(:,1),ndata(:,2),dim(1),prod(dim(2:end)));
+                elseif dim(2)==1
+                    % Sparse column vector
+                    ndata=sparse(ndata(:,1),1,ndata(:,2),dim(1),prod(dim(2:end)));
+                else
+                    % Generic sparse array.
+                    ndata=sparse(ndata(:,1),ndata(:,2),ndata(:,3),dim(1),prod(dim(2:end)));
+                end
             else
+                if(iscpx && size(ndata,2)==4)
+                    ndata(:,3)=complex(ndata(:,3),ndata(:,4));
+                end
                 ndata=sparse(ndata(:,1),ndata(:,2),ndata(:,3));
             end
         end
@@ -244,12 +259,17 @@ global pos inStr isoct
          end
         end
     end
-    try
+    if(jsonopt('SimplifyCell',0,varargin{:})==1)
+      try
+        oldobj=object;
         object=cell2mat(object')';
-        if(size(object,1)>1 && ndims(object)==2)
+        if(iscell(oldobj) && isstruct(object) && numel(object)>1 && jsonopt('SimplifyCellArray',1,varargin{:})==0)
+            object=oldobj;
+        elseif(size(object,1)>1 && ndims(object)==2)
             object=object';
         end
-    catch
+      catch
+      end
     end
     parse_char(']');
 

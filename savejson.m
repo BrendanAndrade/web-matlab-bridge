@@ -11,7 +11,7 @@ function json=savejson(rootname,obj,varargin)
 % author: Qianqian Fang (fangq<at> nmr.mgh.harvard.edu)
 %            created on 2011/09/09
 %
-% $Id: savejson.m 371 2012-06-20 12:43:06Z fangq $
+% $Id: savejson.m 394 2012-12-18 17:58:11Z fangq $
 %
 % input:
 %      rootname: name of the root-object, if set to '', will use variable name
@@ -71,12 +71,21 @@ function json=savejson(rootname,obj,varargin)
 %      savejson('',a,'ArrayIndent',0,'FloatFormat','\t%.5g')
 %
 % license:
-%     BSD, see LICENSE_BSD.txt files for details
+%     BSD or GPL version 3, see LICENSE_{BSD,GPLv3}.txt files for details
 %
 % -- this function is part of jsonlab toolbox (http://iso2mesh.sf.net/cgi-bin/index.cgi?jsonlab)
 %
 
-varname=inputname(2);
+if(nargin==1)
+   varname=inputname(1);
+   obj=rootname;
+   if(isempty(varname)) 
+      varname='root';
+   end
+   rootname=varname;
+else
+   varname=inputname(2);
+end
 if(length(varargin)==1 && ischar(varargin{1}))
    opt=struct('FileName',varargin{1});
 else
@@ -246,7 +255,8 @@ end
 padding1=repmat(sprintf('\t'),1,level);
 padding0=repmat(sprintf('\t'),1,level+1);
 
-if(length(size(item))>2 || issparse(item) || ~isreal(item) || jsonopt('ArrayToStruct',0,varargin{:}))
+if(length(size(item))>2 || issparse(item) || ~isreal(item) || ...
+   isempty(item) ||jsonopt('ArrayToStruct',0,varargin{:}))
     if(isempty(name))
     	txt=sprintf('%s{\n%s"_ArrayType_": "%s",\n%s"_ArraySize_": %s,\n',...
               padding1,padding0,class(item),padding0,regexprep(mat2str(size(item)),'\s+',',') );
@@ -274,13 +284,24 @@ if(issparse(item))
     data=full(item(find(item)));
     if(~isreal(item))
        data=[real(data(:)),imag(data(:))];
+       if(size(item,1)==1)
+           % Kludge to have data's 'transposedness' match item's.
+           % (Necessary for complex row vector handling below.)
+           data=data';
+       end
        txt=sprintf(dataformat,txt,padding0,'"_ArrayIsComplex_": ','1', sprintf(',\n'));
     end
     txt=sprintf(dataformat,txt,padding0,'"_ArrayIsSparse_": ','1', sprintf(',\n'));
-    if(find(size(item)==1))
+    if(size(item,1)==1)
+        % Row vector, store only column indices.
+        txt=sprintf(dataformat,txt,padding0,'"_ArrayData_": ',...
+           matdata2json([iy(:),data'],level+2,varargin{:}), sprintf('\n'));
+    elseif(size(item,2)==1)
+        % Column vector, store only row indices.
         txt=sprintf(dataformat,txt,padding0,'"_ArrayData_": ',...
            matdata2json([ix,data],level+2,varargin{:}), sprintf('\n'));
     else
+        % General case, store row and column indices.
         txt=sprintf(dataformat,txt,padding0,'"_ArrayData_": ',...
            matdata2json([ix,iy,data],level+2,varargin{:}), sprintf('\n'));
     end
@@ -335,14 +356,6 @@ if(any(isnan(mat(:))))
     txt=regexprep(txt,'NaN',jsonopt('NaN','"_NaN_"',varargin{:}));
 end
 
-%%-------------------------------------------------------------------------
-function val=jsonopt(key,default,varargin)
-val=default;
-if(nargin<=2) return; end
-opt=varargin{1};
-if(isstruct(opt) && isfield(opt,key))
-    val=getfield(opt,key);
-end
 %%-------------------------------------------------------------------------
 function newname=checkname(name,varargin)
 isunpack=jsonopt('UnpackHex',1,varargin{:});
