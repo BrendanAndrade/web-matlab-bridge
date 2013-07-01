@@ -81,6 +81,9 @@ classdef ros_websocket < handle
             % obj.client = javaObjectMT('org.java_websocket.bridge.ROSBridgeClient',obj.MASTER_URI);
             obj.client = ROSBridgeClient(obj.MASTER_URI);
             
+            %Setup json parser
+            json.startup;
+            
             % Connect to websocket
             retry = 0;
             while (not(strcmp(obj.client.getReadyState(),'OPEN')) && retry <= 3)
@@ -111,7 +114,7 @@ classdef ros_websocket < handle
             %   See rosbridge documentation for message formatting
             
             javaMethodMT('send', obj.client, message);
-            pause(0.005); % Pause for java function call to complete
+            pause(0.01); % Pause for java function call to complete
         end % send
         
         function close(obj)
@@ -126,7 +129,7 @@ classdef ros_websocket < handle
     methods (Access = private)
         
         function message_callback(obj, ~, e)
-            message_struct = loadjson(char(e.message)); %convert json string to struct
+            message_struct = json.load(char(e.message)); %convert json string to struct
             obj.message = message_struct;
             % Trigger event type based on what type of message is received
             switch message_struct.op
