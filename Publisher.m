@@ -57,8 +57,14 @@ classdef Publisher
             obj.ws.send(message);
         end
         
-        function publish(obj, data)
+        function publish(obj, data, varargin)
+            
             json_data = json.dump(data);
+            % Temporary hack to account for length 1 arrays
+            if strcmp(varargin{1}, 'array')
+                k = strfind(json_data, ':');
+                json_data = [ json_data(1:k(1)) '[' json_data(k(1)+1:end-1) ']' json_data(end)];
+            end
             message = strcat('{"op": "publish", "topic": "', obj.topic, '", "msg": ', json_data, '}');
             obj.ws.send(message);      
         end
